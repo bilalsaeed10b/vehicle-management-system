@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Management System</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const vehicleForm = document.getElementById('vehicleForm');
+            const vehicleList = document.getElementById('vehicleList');
+
+            // Function to load vehicles
+            async function loadVehicles() {
+                try {
+                    const response = await fetch('/api/vehicles');
+                    const vehicles = await response.json();
+                    vehicleList.innerHTML = '';
+                    vehicles.forEach(vehicle => {
+                        const vehicleCard = document.createElement('div');
+                        vehicleCard.className = 'vehicle-card';
+                        vehicleCard.innerHTML = `
+                            <p><strong>Name:</strong> ${vehicle.firstName} ${vehicle.lastName}</p>
+                            <p><strong>Email:</strong> ${vehicle.email}</p>
+                            <p><strong>Phone:</strong> ${vehicle.phone}</p>
+                            <p><strong>Address:</strong> ${vehicle.address}</p>
+                            <p><strong>Vehicle Brand:</strong> ${vehicle.vehicleBrand}</p>
+                            <p><strong>Chesis Number:</strong> ${vehicle.chesisNumber}</p>
+                            <button onclick="editVehicle('${vehicle._id}')">Edit</button>
+                            <button onclick="deleteVehicle('${vehicle._id}')">Delete</button>
+                        `;
+                        vehicleList.appendChild(vehicleCard);
+                    });
+                } catch (err) {
+                    console.error('Error loading vehicles:', err);
+                }
+            }
+
+            // Function to add a new vehicle
+            vehicleForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const formData = new FormData(vehicleForm);
+                const data = {};
+                formData.forEach((value, key) => {
+                    data[key] = value;
+                });
+
+                try {
+                    const response = await fetch('/api/vehicles', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    const result = await response.json();
+                    if (response.ok) {
+                        alert('Vehicle added successfully!');
+                        loadVehicles();
+                    } else {
+                        alert('Failed to add vehicle: ' + result.error);
+                    }
+                } catch (err) {
+                    alert('Error: ' + err.message);
+                }
+            });
+
+            // Function to edit a vehicle
+            async function editVehicle(id) {
+                const firstName = prompt('Enter new first name:');
+                const lastName = prompt('Enter new last name:');
+                const email = prompt('Enter new email:');
+                const phone = prompt('Enter new phone:');
+                const address = prompt('Enter new address:');
+                const vehicleBrand = prompt('Enter new vehicle brand:');
+                const chesisNumber = prompt('Enter new chesis number:');
+                try {
+                    const response = await fetch(`/api/vehicles/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ firstName, lastName, email, phone, address, vehicleBrand, chesisNumber })
+                    });
+                    const result = await response.json();
+                    if (response.ok) {
+                        alert('Vehicle updated successfully!');
+                        loadVehicles();
+                    } else {
+                        alert('Failed to update vehicle: ' + result.error);
+                    }
+                } catch (err) {
+                    alert('Error: ' + err.message);
+                }
+            }
+
+            // Function to delete a vehicle
+            async function deleteVehicle(id) {
+                try {
+                    const response = await fetch(`/api/vehicles/${id}`, {
+                        method: 'DELETE'
+                    });
+                    const result = await response.json();
+                    if (response.ok) {
+                        alert(result.message);
+                        loadVehicles();
+                    } else {
+                        alert('Failed to delete vehicle: ' + result.error);
+                    }
+                } catch (err) {
+                    alert('Error: ' + err.message);
+                }
+            }
+
+            // Load vehicles on page load
+            loadVehicles();
+            
+        });
+    </script>
+</head>
+<body>
+    <h1>Vehicle Management System</h1>
+    <form id="vehicleForm">
+        <input type="text" name="firstName" placeholder="First Name" required>
+        <input type="text" name="lastName" placeholder="Last Name" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="text" name="phone" placeholder="Phone" required>
+        <input type="text" name="address" placeholder="Address" required>
+        <input type="text" name="vehicleBrand" placeholder="Vehicle Brand" required>
+        <input type="text" name="chesisNumber" placeholder="Chesis Number" required>
+        <button type="submit">Add Vehicle</button>
+    </form>
+    <div id="vehicleList"></div>
+</body>
+</html>
